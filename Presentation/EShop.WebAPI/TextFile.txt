@@ -1,0 +1,16 @@
+﻿Butun Controllerlerde CRUD Operationslari tam sonuna qeder edin.
+
+Elave: CategoryWithProduct      UserWithORderWithproduct
+
+Buna benzer herController ucun Enazi 3 method Yazin ve repository-leride buna uygunlashdirin
+
+Elave olmalidir:
+
+1. Fluent Validation ile yoxlamalar yazilsin | GenericValidator ile olsun
+2. AutoMapper ile mapper yazilsin
+3. Controller-lerin icerisi Service-lere dasinsin
+4. Service-lerde Response class-i hazirlansin. Her 1 sey eyni formada geri qayitsin
+
+
+
+
