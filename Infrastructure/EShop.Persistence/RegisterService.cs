@@ -47,8 +47,6 @@ public static class RegisterService
 
     private static void AddServiceExtention(IServiceCollection services)
     {
-        // 
-
         services.AddScoped<ICategoryService, CategoryServuce>();
         services.AddScoped<IProductService, ProductService>();
     }

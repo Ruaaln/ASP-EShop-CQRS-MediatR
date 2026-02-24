@@ -1,12 +1,15 @@
 ﻿using EShop.Application.DTOS;
 using EShop.Application.DTOS.Category;
 using EShop.Application.Repositories;
+using EShop.Application.Services.Abstracts;
 using EShop.Domain.Entities.Concretes;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Identity.Client;
+using System.Net.WebSockets;
 
 namespace EShop.Persistence.Services.Concretes;
 
-public class CategoryServuce
+public class CategoryServuce : ICategoryService
 {
     private readonly ICategoryReadRepository _categoryReadRepository;
     private readonly ICategoryWriteRepository _categoryWriteRepository;
@@ -17,17 +20,15 @@ public class CategoryServuce
         _categoryWriteRepository = categoryWriteRepository;
     }
 
-
     public async Task<bool> AddAsync(AddCategoryDto model)
     {
-        var NewCategory = new Category()
+        var newCategory = new Category()
         {
             Name = model.Name,
             Description = model.Description
         };
 
-
-        await _categoryWriteRepository.AddAsync(NewCategory);
+        await _categoryWriteRepository.AddAsync(newCategory);
         await _categoryWriteRepository.SaveChangeAsync();
 
         return true;
@@ -37,52 +38,67 @@ public class CategoryServuce
     {
         var category = await _categoryReadRepository.GetByIdAsync(id);
 
+
         if (category is null) 
             return false;
 
         await _categoryWriteRepository.Delete(id);
         await _categoryWriteRepository.SaveChangeAsync();
-        
+
         return true;
     }
 
-
-
-    public async Task<IEnumerable<AllCategoryDTO>> GetAllCategory(PaginationDTO model)
+    public async Task<IEnumerable<AllCategoryDTO>> GetAllAsync(PaginationDTO model)
     {
-        var category = await _categoryReadRepository.GetAllAsync();
+        var categoryes = await _categoryReadRepository.GetAllAsync();
 
-        var categoryWithPagionation = category
-                                            .Skip(model.Page * model.PageSize)
-                                            .Take(model.PageSize)
-                                            .ToList();
-        var allCategoryDto = categoryWithPagionation.Select(x => new AllCategoryDTO()
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description
-        });
+        var categoryWithPagionation = categoryes
+                                        .Skip(model.Page * model.PageSize)
+                                        .Take(model.PageSize)
+                                        .ToList();
+        var allCategory = categoryWithPagionation
+                            .Select(x => new AllCategoryDTO()
+                            {
+                                Id = x.Id,
+                                Name = x.Name,
+                                Description = x.Description,
+                            });
 
-        return allCategoryDto;
+        return allCategory;
+
+
     }
-
 
     public async Task<AllCategoryDTO> GetByIdAsync(int id)
     {
         var category = await _categoryReadRepository.GetByIdAsync(id);
 
-
         if (category is null)
-            return null;
+           return null;
 
-        var mapperData = new AllCategoryDTO()
+        var mappedData = new AllCategoryDTO()
         {
-            Id = id,
+            Id = category.Id,
             Name = category.Name,
             Description = category.Description
         };
 
-        return mapperData;
+        return mappedData;
+    }
+
+    public async Task<bool> UpdateAsync(int id, UpdateCategotyDTO model)
+    {
+        var category = await _categoryReadRepository.GetByIdAsync(id);
+
+        if(category is null)
+            return false;
+
+        category.Name = model.Name;
+        category.Description = model.Description;
+
+        await _categoryWriteRepository.SaveChangeAsync();
+
+        return true;
     }
 }
 

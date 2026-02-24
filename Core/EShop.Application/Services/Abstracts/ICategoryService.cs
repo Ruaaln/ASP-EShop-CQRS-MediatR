@@ -12,5 +12,4 @@ public interface ICategoryService
     Task<bool> DeleteAsync(int id);
     Task<AllCategoryDTO> GetByIdAsync(int id);
     Task<bool> UpdateAsync(int id, UpdateCategotyDTO model);
-    Task<List<AllCategoryDTO>> GetProductsByCategoryId(int categoryId);
 }
