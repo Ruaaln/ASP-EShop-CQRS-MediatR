@@ -1,7 +1,6 @@
 ﻿namespace EShop.Application.DTOS.Category;
 
-
-public class UpdateCategoryDto
+public class CategoryDto
 {
     public int Id { get; set; }
     public string Name { get; set; }

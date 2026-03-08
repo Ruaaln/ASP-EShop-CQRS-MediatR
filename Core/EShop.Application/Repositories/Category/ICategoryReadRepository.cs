@@ -5,7 +5,5 @@ namespace EShop.Application.Repositories;
 
 public interface ICategoryReadRepository : IReadGenericRepository<Category>
 {
-    // Category with Product
-
 
 }

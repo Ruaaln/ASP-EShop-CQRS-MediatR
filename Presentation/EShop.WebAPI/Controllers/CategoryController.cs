@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using EShop.Application.Repositories;
-using EShop.Application.DTOS.Category;
-using EShop.Domain.Entities.Concretes;
-using EShop.Application.Services.Abstracts;
-using Azure.Core;
-using EShop.Application.DTOS;
+﻿using EShop.Application.Features.Category.Commands.CreateCategoy;
+using EShop.Application.Features.Category.Commands.DeleteCategoy;
+using EShop.Application.Features.Category.Commands.UpdateCategoy;
+using EShop.Application.Features.Category.Queries.GetAllCategories;
+using EShop.Application.Features.Category.Queries.GetCategoryById;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EShop.WebAPI.Controllers;
 
@@ -12,61 +12,53 @@ namespace EShop.WebAPI.Controllers;
 [ApiController]
 public class CategoryController : ControllerBase
 {
-    private readonly ICategoryService _categoryService;
-
-    public CategoryController(ICategoryService categoryService)
+    private readonly IMediator _mediator;
+    public CategoryController(IMediator mediator)
     {
-        _categoryService = categoryService;
+        _mediator = mediator;
     }
 
-    [HttpPatch("GetAll")]
-    public async Task<IActionResult> GetAll([FromQuery] PaginationDTO model) 
-        => Ok(await _categoryService.GetAllAsync(model));
-
-
-
-
-    [HttpPost("AddCategory")]
-    public async Task<IActionResult> Add([FromBody] AddCategoryDto model)
+    [HttpGet("GetAll")]
+    public async Task<IActionResult> GetAll()
     {
-        if (!ModelState.IsValid)
-            return BadRequest(model);
-
-        var result = await _categoryService.AddAsync(model);
-
-        if (!result)
-            return BadRequest();
-
-        return StatusCode(204);
+        var result = await _mediator.Send(new GetAllCategoriesQuery());
+        return Ok(result);
     }
-
-
-
-    [HttpDelete("DeletCategory")]
-    public async Task<IActionResult> Delet([FromRoute] int id)
-        => await _categoryService.DeleteAsync(id) ? StatusCode(2004) : BadRequest();
 
     [HttpGet("GetById/{id}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var result = await _categoryService.GetByIdAsync(id);
-
+        var result = await _mediator.Send(new GetCategoryByIdQuery { Id = id });
         if (result is null)
-            return BadRequest();
-
+            return NotFound();
         return Ok(result);
     }
 
-
-    [HttpPut("Update{id}")]
-    public async Task<IActionResult> Updae([FromRoute] int id, [FromBody] UpdateCategotyDTO model)
+    [HttpPost("AddCategory")]
+    public async Task<IActionResult> Add([FromBody] CreateCategoryCommand command)
     {
-        var result = await _categoryService.UpdateAsync(id, model);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        var id = await _mediator.Send(command);
+        return StatusCode(201, id);
+    }
 
+    [HttpPut("Update/{id}")]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCategoryCommand command)
+    {
+        command.Id = id;
+        var result = await _mediator.Send(command);
         if (!result)
-            return BadRequest();
-
+            return NotFound();
         return StatusCode(204);
     }
 
+    [HttpDelete("Delete/{id}")]
+    public async Task<IActionResult> Delete([FromRoute] int id)
+    {
+        var result = await _mediator.Send(new DeleteCategoryCommand { Id = id });
+        if (!result)
+            return NotFound();
+        return StatusCode(204);
+    }
 }
